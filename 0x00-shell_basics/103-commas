@@ -1,2 +1,2 @@
 #!/bin/bash
-ls -xam
+ls -amp | sort -d
