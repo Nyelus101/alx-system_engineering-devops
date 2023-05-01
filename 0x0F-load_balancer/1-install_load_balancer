@@ -9,7 +9,7 @@ sudo apt-get install haproxy -y
 
 # Configure HAproxy
 sudo cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.orig
-sudo cat <<EOT > /etc/haproxy/haproxy.cfg
+sudo cat <<EOT | sudo tee /etc/haproxy/haproxy.cfg
 global
     log /dev/log    local0
     log /dev/log    local1 notice
@@ -50,7 +50,7 @@ sudo sed -i "s/100.25.163.180/100.25.163.180/g" /etc/haproxy/haproxy.cfg
 sudo haproxy -f /etc/haproxy/haproxy.cfg -c
 
 # Create Systemd service file for HAproxy
-sudo cat <<EOT > /etc/systemd/system/haproxy.service
+sudo cat <<EOT | sudo tee /etc/systemd/system/haproxy.service
 [Unit]
 Description=HAProxy Load Balancer
 After=network.target
