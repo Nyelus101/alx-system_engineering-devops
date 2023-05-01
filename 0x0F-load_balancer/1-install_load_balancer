@@ -1,0 +1,79 @@
+#!/bin/bash
+# Installs HAProxy
+
+# Update package list
+sudo apt-get update
+
+# Install HAproxy
+sudo apt-get install haproxy -y
+
+# Configure HAproxy
+sudo cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.orig
+sudo cat <<EOT > /etc/haproxy/haproxy.cfg
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    retries 3
+    option  redispatch
+    maxconn 2000
+    timeout connect 5s
+    timeout client  15s
+    timeout server  15s
+
+frontend http-in
+    bind *:80
+    default_backend servers
+
+backend servers
+    mode http
+    balance roundrobin
+    server web-01 100.26.237.26:80 check
+    server web-02 100.25.163.180:80 check
+EOT
+
+sudo sed -i "s/100.26.237.26/100.26.237.26/g" /etc/haproxy/haproxy.cfg
+sudo sed -i "s/100.25.163.180/100.25.163.180/g" /etc/haproxy/haproxy.cfg
+
+# Test configuration file
+sudo haproxy -f /etc/haproxy/haproxy.cfg -c
+
+# Create Systemd service file for HAproxy
+sudo cat <<EOT > /etc/systemd/system/haproxy.service
+[Unit]
+Description=HAProxy Load Balancer
+After=network.target
+
+[Service]
+Environment="CONFIG=/etc/haproxy/haproxy.cfg"
+Environment="PIDFILE=/run/haproxy.pid"
+ExecStart=/usr/sbin/haproxy -f ${CONFIG} -p ${PIDFILE}
+ExecReload=/bin/kill -USR2 $MAINPID
+KillSignal=SIGTERM
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+# Reload Systemd daemon to read new service file
+sudo systemctl daemon-reload
+
+# Start HAproxy and enable it to run at boot
+sudo systemctl start haproxy
+sudo systemctl enable haproxy
+
+# Verify that HAproxy is running
+sudo systemctl status haproxy
+
