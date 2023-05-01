@@ -68,12 +68,12 @@ WantedBy=multi-user.target
 EOT
 
 # Reload Systemd daemon to read new service file
-sudo systemctl daemon-reload
+sudo service daemon-reload
 
 # Start HAproxy and enable it to run at boot
-sudo systemctl start haproxy
-sudo systemctl enable haproxy
+sudo service start haproxy
+sudo service enable haproxy
 
 # Verify that HAproxy is running
-sudo systemctl status haproxy
+sudo service status haproxy
 
