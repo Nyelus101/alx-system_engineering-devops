@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Redirect port 8080 to port 80
+iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 8080 -j REDIRECT --to-port 80
+
+# Save the iptables rules
+iptables-save > /etc/iptables/rules.v4
+
+# Ensure iptables-persistent is installed
+apt-get update
+apt-get install iptables-persistent -y
+
+# Enable the firewall rules to persist on reboot
+iptables-persistent save
+iptables-persistent reload
+
